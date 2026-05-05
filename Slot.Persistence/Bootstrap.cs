@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
 using Slot.Persistence.Contexts;
 using Slot.Persistence.Factories;
 using Slot.Persistence.Interceptors;
@@ -10,21 +11,35 @@ namespace Slot.Persistence;
 
 public static class Bootstrap
 {
-    public static IServiceCollection AddPersistence(this IServiceCollection services, Func<IServiceProvider, Options.DbContextOptions> dbContextOptionsFactory)
+    public static IServiceCollection AddPersistence(
+        this IServiceCollection services,
+        Func<IServiceProvider, Options.DbContextOptions> dbContextOptionsFactory)
     {
+        services.AddInterceptors();
         services.AddDbContexts(dbContextOptionsFactory);
         services.AddServices();
         return services;
     }
 
-    private static IServiceCollection AddDbContexts(this IServiceCollection services, Func<IServiceProvider, Options.DbContextOptions> dbContextOptionsFactory)
+    private static IServiceCollection AddInterceptors(this IServiceCollection services)
     {
-        services.AddDbContextPool<AppDbContext>((sp, builder) => {
-            var options = dbContextOptionsFactory(sp);
-            builder.UseNpgsql(options.ConnectionString).AddInterceptors(
-                sp.GetRequiredService<AuditableInterceptor>());
-        });
+        services.AddSingleton<AuditableInterceptor>();
+        services.AddSingleton<SoftDeletableInterceptor>();
+        return services;
+    }
 
+    private static IServiceCollection AddDbContexts(
+        this IServiceCollection services,
+        Func<IServiceProvider, Options.DbContextOptions> dbContextOptionsFactory)
+    {
+        services.AddDbContextPool<AppDbContext>((sp, builder) =>
+        {
+            var options = dbContextOptionsFactory(sp);
+            builder.UseNpgsql(options.ConnectionString)
+                   .AddInterceptors(
+                       sp.GetRequiredService<AuditableInterceptor>(),
+                       sp.GetRequiredService<SoftDeletableInterceptor>());
+        });
         return services;
     }
 
@@ -32,7 +47,6 @@ public static class Bootstrap
     {
         services.AddScoped(typeof(EntityRepository<>), typeof(EntityRepository<>));
         services.AddScoped<IEntityRepositoryFactory, EntityRepositoryFactory>();
-
         return services;
     }
 }

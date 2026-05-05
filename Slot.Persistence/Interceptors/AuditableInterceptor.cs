@@ -4,7 +4,7 @@ using Slot.Domain.Interfaces;
 
 namespace Slot.Persistence.Interceptors;
 
-internal sealed class AuditableInterceptor(TimeProvider timeProvider) : SaveChangesInterceptor
+internal sealed class AuditableInterceptor(TimeProvider? timeProvider = null) : SaveChangesInterceptor
 {
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
@@ -13,16 +13,17 @@ internal sealed class AuditableInterceptor(TimeProvider timeProvider) : SaveChan
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
-        var entities = eventData.Context.ChangeTracker.Entries<IAuditable>().Where(e => e.State == Microsoft.EntityFrameworkCore.EntityState.Added);
+        var entries = eventData.Context.ChangeTracker.Entries<IAuditable>().Where(e => e.State == Microsoft.EntityFrameworkCore.EntityState.Added).ToList();
 
-        if (entities.Any())
+        if (entries.Count == 0)
         {
-            var now = timeProvider.GetUtcNow();
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
+        }
+        var now = (timeProvider ?? TimeProvider.System).GetUtcNow();
 
-            foreach (var entity in entities)
-            {
-                entity.Property(e => e.CreatedAt).CurrentValue = now;
-            }
+        foreach (var entry in entries)
+        {
+            entry.Property(e => e.CreatedAt).CurrentValue = now;
         }
 
         return base.SavingChangesAsync(eventData, result, cancellationToken);
