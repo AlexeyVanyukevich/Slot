@@ -45,14 +45,15 @@ A person who makes bookings. Scoped to a tenant.
 
 Anything that can be assigned to a slot — a person or a physical space.
 
-| Field      | Type         | Description                                                      |
-| ---------- | ------------ | ---------------------------------------------------------------- |
-| Id         | Guid         | Unique identifier                                                |
-| TenantId   | Guid         | FK → Tenant                                                      |
-| Name       | string       | Display name (e.g. "Anna", "Room 3")                             |
-| Type       | ResourceType | Staff / Space                                                    |
-| MetadataId | string?      | Reference to metadata document in MongoDB (specialization, etc.) |
-| IsActive   | bool         | Whether the resource is available                                |
+| Field           | Type    | Description                                                       |
+| --------------- | ------- | ----------------------------------------------------------------- |
+| Id              | Guid    | Unique identifier                                                 |
+| TenantId        | Guid    | FK → Tenant                                                       |
+| Name            | string  | Display name (e.g. "Anna", "Room 3")                              |
+| ConfigReference | string  | Reference to resource config document in MongoDB (type, metadata) |
+| IsActive        | bool    | Whether the resource is available                                 |
+
+> Resource type (e.g. Staff / Space) and any specialization metadata are stored in the tenant-scoped config document referenced by `ConfigReference`, not as fields on the entity.
 
 ---
 
@@ -129,7 +130,6 @@ A bundle of credits purchased by a customer, used to pay for bookings.
 
 ```csharp
 enum CustomerStatus { Active, Frozen, Banned }
-enum ResourceType   { Staff, Space }
 enum SlotStatus     { Scheduled, Cancelled, Completed }
 enum BookingStatus  { Confirmed, CancelledByCustomer, CancelledByTenant, NoShow, Attended }
 ```
