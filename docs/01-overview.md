@@ -27,14 +27,14 @@ and credit-based memberships — configurable to any business type.
 
 ## Documents
 
-| File                        | Description                           |
-| --------------------------- | ------------------------------------- |
-| `02-domain-model.md`        | Entities, enums, relationships        |
-| `03-tenant-config.md`       | How tenants configure their domain    |
-| `04-business-rules.md`      | Booking, cancellation, credit rules   |
-| `05-api-contract.md`        | Endpoints and request/response shapes |
-| `06-project-structure.md`   | .NET solution layout                  |
-| `07-implementation-plan.md` | Step-by-step build plan               |
+| File                          | Description                                         |
+| ----------------------------- | --------------------------------------------------- |
+| `02-implementation-plan.md`   | Phase index — links to each phase document          |
+| `phase-1-domain.md`           | Domain model: entities, enums, relationships, rules |
+| `phase-2-persistence.md`      | PostgreSQL / EF Core mapping and repositories       |
+| `phase-3-config.md`           | MongoDB tenant config and caching                   |
+| `phase-4-application.md`      | Use cases and business orchestration                |
+| `phase-5-api.md`              | HTTP endpoints, middleware, validation              |
 
 ## Versioning roadmap
 
