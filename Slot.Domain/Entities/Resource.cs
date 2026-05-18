@@ -11,5 +11,5 @@ public class Resource : Entity, IAuditable, IActivatable
     public bool IsActive { get; set; }
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; }
-    public ICollection<Slot> Slots { get; }
+    public ICollection<SlotResource> Slots { get; }
 }
