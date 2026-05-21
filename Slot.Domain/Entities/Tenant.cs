@@ -14,7 +14,7 @@ public class Tenant : Entity, IAuditable, IActivatable, ISoftDeletable
     public ICollection<Customer> Customers { get; }
     public ICollection<Resource> Resources { get; }
     public ICollection<ServiceType> ServiceTypes { get; }
-    public ICollection<Slot> Slots { get; }
+    public ICollection<SlotEntity> Slots { get; }
     public ICollection<Booking> Bookings { get; }
     public ICollection<CreditPack> CreditPacks { get; }
     public bool IsDeleted { get; set; }

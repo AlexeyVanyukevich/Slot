@@ -1,12 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using Slot.Persistence.Abstractions.Interfaces;
 using Slot.Persistence.Contexts;
 using Slot.Persistence.Factories;
 using Slot.Persistence.Interceptors;
-using Slot.Persistence.Interfaces;
-using Slot.Persistence.Repositories;
-
 namespace Slot.Persistence;
 
 public static class Bootstrap
@@ -17,7 +15,7 @@ public static class Bootstrap
     {
         services.AddInterceptors();
         services.AddDbContexts(dbContextOptionsFactory);
-        services.AddServices();
+        services.AddUnitOfWork();
         return services;
     }
 
@@ -32,7 +30,7 @@ public static class Bootstrap
         this IServiceCollection services,
         Func<IServiceProvider, Options.DbContextOptions> dbContextOptionsFactory)
     {
-        services.AddDbContextPool<AppDbContext>((sp, builder) =>
+        EFCore.Bootstrap.AddDbContext<AppDbContext>(services, (sp, builder) =>
         {
             var options = dbContextOptionsFactory(sp);
             builder.UseNpgsql(options.ConnectionString)
@@ -43,10 +41,13 @@ public static class Bootstrap
         return services;
     }
 
-    private static IServiceCollection AddServices(this IServiceCollection services)
+
+    private static IServiceCollection AddUnitOfWork(this IServiceCollection services)
     {
-        services.AddScoped(typeof(EntityRepository<>), typeof(EntityRepository<>));
-        services.AddScoped<IEntityRepositoryFactory, EntityRepositoryFactory>();
+        services.AddScoped<IRepositoryFactory, RepositoryFactory>();
+        services.AddScoped<Interfaces.IUnitOfWork, UnitOfWork>();
+        services.AddScoped<Abstractions.Interfaces.IUnitOfWork>(sp => sp.GetRequiredService<Interfaces.IUnitOfWork>());
         return services;
     }
+
 }

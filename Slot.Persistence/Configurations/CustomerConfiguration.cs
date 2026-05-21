@@ -20,5 +20,8 @@ internal sealed class CustomerConfiguration() : EntityConfiguration<Customer>(Ta
             .WithMany(x => x.Customers)
             .HasForeignKey(x => x.TenantId)
             .OnDelete(Microsoft.EntityFrameworkCore.DeleteBehavior.Cascade);
+
+        builder.HasIndex(x => new { x.TenantId, x.Phone }).IsUnique();
+        builder.HasIndex(x => new { x.TenantId, x.Email }).IsUnique();
     }
 }

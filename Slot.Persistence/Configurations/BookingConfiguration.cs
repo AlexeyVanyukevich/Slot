@@ -31,5 +31,9 @@ internal sealed class BookingConfiguration() : EntityConfiguration<Booking>(Tabl
             .WithMany(x => x.Bookings)
             .HasForeignKey(x => x.SlotId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(x => x.CreditsConsumed).IsRequired();
+        builder.Property(x => x.CancelReason).HasMaxLength(512);
+        builder.HasIndex(x => new { x.SlotId, x.Status });
     }
 }

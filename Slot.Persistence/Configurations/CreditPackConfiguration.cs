@@ -22,5 +22,7 @@ internal sealed class CreditPackConfiguration() : EntityConfiguration<CreditPack
             .WithMany(x => x.CreditPacks)
             .HasForeignKey(x => x.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => new { x.CustomerId, x.IsFrozen, x.ValidUntil });
     }
 }

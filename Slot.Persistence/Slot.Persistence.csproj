@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Slot.Domain\Slot.Domain.csproj" />
+    <ProjectReference Include="..\Slot.Persistence.EFCore\Slot.Persistence.EFCore.csproj" />
   </ItemGroup>
 
 </Project>

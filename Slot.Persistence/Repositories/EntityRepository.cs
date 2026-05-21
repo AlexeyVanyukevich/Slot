@@ -1,11 +1,12 @@
 ﻿using Slot.Domain.Entities;
 using Slot.Persistence.Contexts;
+using Slot.Persistence.EFCore.Repositories;
 
 using System.Linq.Expressions;
 
 namespace Slot.Persistence.Repositories;
 
-internal sealed class EntityRepository<TEntity>(AppDbContext appDbContext) : Repository<TEntity, int>(appDbContext) where TEntity : Entity, new()
+internal sealed class EntityRepository<TEntity>(AppDbContext appDbContext) : EFCoreRepository<TEntity, int>(appDbContext) where TEntity : Entity, new()
 {
     protected override Expression<Func<TEntity, bool>> CreateIdExpression(int id)
     {
