@@ -1,0 +1,142 @@
+erDiagram
+    Tenant ||--o{ TenantUser : "has admins"
+    Tenant ||--o{ Resource : "owns"
+    Tenant ||--o{ Booking : "owns"
+
+    Resource ||--o{ ResourcePhoto : "has"
+    Resource ||--o{ WeeklySchedule : "weekly hours"
+    Resource ||--o{ ScheduleException : "blocked dates"
+    Resource ||--|| FormSchema : "one schema"
+    Resource ||--o{ Booking : "receives"
+
+    FormSchema ||--o{ FormField : "fields"
+    FormSchema ||--o{ Booking : "snapshotted by"
+
+    Booking ||--o{ BookingFieldValue : "values"
+    Booking ||--o{ BookingStatusHistory : "audit log"
+
+    TenantUser ||--o{ BookingStatusHistory : "performs"
+
+    Tenant {
+        uuid Id PK
+        string Name
+        string Slug UK
+        string Timezone
+        string ContactEmail
+        enum Status
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    TenantUser {
+        uuid Id PK
+        uuid TenantId FK
+        string ExternalAuthId UK "from auth server"
+        string Email
+        enum Role "Owner (MVP)"
+        timestamptz CreatedAt
+    }
+
+    Resource {
+        uuid Id PK
+        uuid TenantId FK
+        string Name
+        string Slug
+        text Description
+        string Timezone "nullable, fallback to tenant"
+        bool AutoConfirm
+        int MinLeadTimeMinutes
+        int MaxBookingDaysAhead
+        enum Status "Draft Active Archived"
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    ResourcePhoto {
+        uuid Id PK
+        uuid ResourceId FK
+        string Url
+        int DisplayOrder
+    }
+
+    WeeklySchedule {
+        uuid Id PK
+        uuid ResourceId FK
+        int DayOfWeek "0=Sun..6=Sat"
+        time StartTime
+        time EndTime
+        int SlotDurationMinutes
+        int BufferMinutes
+        bool IsActive
+    }
+
+    ScheduleException {
+        uuid Id PK
+        uuid ResourceId FK
+        date Date
+        time StartTime "nullable=full day"
+        time EndTime "nullable"
+        string Reason
+    }
+
+    FormSchema {
+        uuid Id PK
+        uuid ResourceId FK,UK
+        int Version "always 1 in MVP"
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    FormField {
+        uuid Id PK
+        uuid SchemaId FK
+        string FieldKey "stable machine name"
+        string Label
+        enum FieldType "ShortText Number Date SingleSelect Checkbox"
+        bool IsRequired
+        bool IsSystem "system fields not deletable"
+        int DisplayOrder
+        string Placeholder
+        string HelpText
+        jsonb ValidationRules "min max length etc"
+        jsonb Options "for selects"
+    }
+
+    Booking {
+        uuid Id PK
+        uuid TenantId FK "denormalized"
+        uuid ResourceId FK
+        uuid SchemaId FK "schema snapshot"
+        timestamptz SlotStartAt
+        timestamptz SlotEndAt
+        enum Status "Pending Confirmed Cancelled Completed NoShow"
+        string CustomerName
+        string CustomerEmail
+        string CustomerPhone
+        text CustomerNotes
+        string ExternalReference UK "human-readable code"
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+        timestamptz ConfirmedAt
+        timestamptz CancelledAt
+        string CancellationReason
+    }
+
+    BookingFieldValue {
+        uuid Id PK
+        uuid BookingId FK
+        string FieldKey "snapshot from FormField"
+        enum FieldType "snapshot for display"
+        jsonb Value
+    }
+
+    BookingStatusHistory {
+        uuid Id PK
+        uuid BookingId FK
+        enum FromStatus "nullable for initial"
+        enum ToStatus
+        uuid ChangedByUserId FK "nullable if Customer or System"
+        enum ChangedByType "Customer TenantUser System"
+        string Reason
+        timestamptz ChangedAt
+    }
