@@ -4,15 +4,15 @@
     <File Path="Directory.Build.props" />
   </Folder>
   <Folder Name="/UBP.Core/">
-    <Project Path="UBP.Core.Data.EF/UBP.Core.Data.EF.csproj" Id="9c7f725c-a9d4-449e-a546-da90e8985cfd" />
+    <Project Path="UBP.Core/UBP.Core.Data.EF/UBP.Core.Data.EF.csproj" />
     <Project Path="UBP.Core/UBP.Core.Domain/UBP.Core.Domain.csproj" />
     <Project Path="UBP.Core/UBP.Core.Persistence.EF/UBP.Core.Persistence.EF.csproj" />
     <Project Path="UBP.Core/UBP.Core.Persistence/UBP.Core.Persistence.csproj" />
   </Folder>
   <Folder Name="/UBP.IAM/" />
   <Folder Name="/UBP.Tenant/">
-    <Project Path="UBP.Tenant.Persistence/UBP.Tenant.Persistence.csproj" Id="a9a8c384-b169-4e45-be62-12c179b7967d" />
     <Project Path="UBP.Tenant/UBP.Tenant.Domain/UBP.Tenant.Domain.csproj" />
+    <Project Path="UBP.Tenant/UBP.Tenant.Persistence/UBP.Tenant.Persistence.csproj" />
   </Folder>
   <Project Path="UBP.Cache.Abstractions/UBP.Cache.Abstractions.csproj" />
   <Project Path="UBP.Cache.InMemory/UBP.Cache.InMemory.csproj" />

@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UBP.Core.Data.EF\UBP.Core.Data.EF.csproj" />
-    <ProjectReference Include="..\UBP.Tenant\UBP.Tenant.Domain\UBP.Tenant.Domain.csproj" />
+    <ProjectReference Include="..\..\UBP.Core\UBP.Core.Data.EF\UBP.Core.Data.EF.csproj" />
+    <ProjectReference Include="..\UBP.Tenant.Domain\UBP.Tenant.Domain.csproj" />
   </ItemGroup>
 
 </Project>

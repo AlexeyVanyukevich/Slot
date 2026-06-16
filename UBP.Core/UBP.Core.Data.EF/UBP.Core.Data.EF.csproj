@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UBP.Core\UBP.Core.Domain\UBP.Core.Domain.csproj" />
-    <ProjectReference Include="..\UBP.Core\UBP.Core.Persistence.EF\UBP.Core.Persistence.EF.csproj" />
+    <ProjectReference Include="..\UBP.Core.Domain\UBP.Core.Domain.csproj" />
+    <ProjectReference Include="..\UBP.Core.Persistence.EF\UBP.Core.Persistence.EF.csproj" />
   </ItemGroup>
 
 </Project>
