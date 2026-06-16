@@ -45,264 +45,140 @@ Each field is an object with the following properties:
 - Identifier (a stable machine-readable name).
 - Data type.
 - Label, placeholder, help text.
-- Required/optional flag.
+- Required flag.
 - Default value.
 - Validation rules.
 - Visibility and required-state conditions.
 
 ### Chapter 3. Field Type Catalog
 
-A finite, controlled set. Extended only when there is a genuine need.
+A finite, controlled set. Extended only when there is a real need.
 
-**Text**
-- Short text (single line)
-- Long text (multiline)
+| Type | Description | Validation examples |
+|---|---|---|
+| `short_text` | Single-line text | minLength, maxLength, pattern (email, phone) |
+| `number` | Integer or decimal | min, max, step |
+| `date` | Calendar date | minDate, maxDate, disallowPast |
+| `single_select` | Dropdown or radio | list of allowed values |
+| `checkbox` | Boolean (yes/no) | — |
 
-**Numeric**
-- Integer
-- Decimal
-- Money (separate type — currency + precision)
+**Not in MVP:** long text, multi-select, file upload, phone with country code, date range. Added in Stage 2.
 
-**Choice**
-- Single selection (radio/dropdown)
-- Multiple selection (checkbox/multi-select)
-- Boolean (yes/no)
+### Chapter 4. Validation Layers
 
-**Date & Time**
-- Date
-- Time
-- Date and time
-- Date range (one type, not two fields)
-- Time range
+**Layer 1 — Formal validation (per field):**
+- Type compliance.
+- Required field check.
+- Type-specific constraints (length, range, pattern, allowed values).
 
-**Contact**
-- Phone number (with country code)
-- Email
+**Layer 2 — Cross-field validation:**
+- Logical consistency between fields (e.g. check-out date after check-in date).
+- Defined by rules, not arbitrary code.
 
-**Files & Media**
-- File
-- Image
+**Layer 3 — Business validation:**
+- Resource availability for the selected slot.
+- Minimum lead time.
+- Maximum booking horizon.
+- Double-booking prevention.
 
-**Composite**
-- Address (structured)
-- Contact (name + phone + email)
+### Chapter 5. Conditional Logic
 
-**Other**
-- URL
-- Rating / score
+Conditions control **field visibility** and **required state**.
 
-### Chapter 4. System vs. Custom Fields
+A condition is a rule: `IF field X has value Y → THEN field Z is visible / required`.
 
-**System fields** (always present, cannot be deleted):
-- Client contact info (name, phone, email).
-- Booking time/period.
-- Resource/slot.
-- Number of participants (where applicable).
+**Rules:**
+- Conditions reference only fields of types `single_select` and `checkbox`.
+- Conditions are checked in real time on the client (for UX) and on the server (for integrity).
+- A hidden field's value is **not saved** in the booking.
+- If a field becomes visible later, the client must fill it in explicitly.
 
-**Custom fields** — added by the tenant for their specific domain. This is where the platform's universality shines.
+### Chapter 6. Select Options
 
-### Chapter 5. Validation
-
-**Formal type-based validation:**
-- Text: min/max length, patterns (from a predefined library only — no arbitrary regex).
-- Number: min/max value, step.
-- Money: currency, precision, min/max.
-- Choice: list of allowed values, "other" mode.
-- Date: min/max, prohibition of past dates / weekends.
-- Date range: min/max duration.
-- Phone: format, allowed countries.
-- Email: format, optional domain check.
-- File: max size, allowed extensions, max count.
-
-**Cross-field validation:**
-- Check-out date must be after check-in date.
-- Number of guests ≤ capacity.
-- "Pets: yes" → the "type of pet" field becomes required.
-
-**Business validation (server-only):**
-- Slot is still free at the time of submission.
-- Minimum lead time before start is not violated.
-- Client's active booking limit is not exceeded.
-- Promo code is valid.
-
-**Validation trigger levels:**
-- On input — immediate feedback (format errors).
-- On field blur — heavier checks.
-- On submit — cross-field validation.
-- On server (always) — repeated formal + business validation.
-- Asynchronous — slot availability, promo code check.
-
-**Error messages:**
-- User-friendly, not technical.
-- Localized.
-- Tenants can override the default message.
-
-### Chapter 6. Conditional Logic
-
-**What can be controlled conditionally:**
-- Field visibility.
-- Required state.
-- Editability.
-- Default value.
-- Options list in a select.
-- Validation rules.
-
-**Structure of a single condition:**
-source field + operator + comparison value.
-
-**Operators by field type:**
-- Text: equals, does not equal, contains, is empty, is not empty.
-- Number/money: equals, greater than, less than, in range.
-- Date: before, after, in range, today / future / past.
-- Boolean: true / false.
-- Choice: equals, is in list.
-- Multi-select: contains all, contains at least one.
-
-**Combining conditions:** AND, OR, NOT, groups with parentheses. Limit nesting depth (2–3 levels); otherwise tenants build labyrinths.
-
-**Section visibility:** a condition applies to a group of fields, not to each one individually.
-
-**What to do with a hidden field's value:**
-- Recommended policy: **clear the value on hide**.
-- A hidden field **is not validated**, even if it is required.
-
-**Role-based visibility** — a separate axis:
-- Clients see certain fields.
-- Tenant staff — additionally see internal fields.
-- Platform admin — sees everything.
-
-This is not conditional logic; it operates independently.
-
-**Dynamic select options:** the list of values depends on another field (city depends on country, trainer depends on workout type). Implemented as "options = function of another field's value."
-
-**Pitfalls:**
-- Circular dependencies (A ↔ B) — must be prohibited at schema creation time.
-- The condition builder must have a visual UI.
-- Performance of recalculation on changes.
-- A form preview mode for the tenant is mandatory.
+Options for `single_select` fields are **static** in MVP — defined when the form is created, do not change based on other fields. Dynamic options (loaded from an API) are a post-MVP feature.
 
 ### Chapter 7. Schema Versioning
 
-**What is versioned (contracts):**
-- Booking form schema.
-- Pricing rules.
-- Cancellation policy.
-- Availability rules (with caveats).
+**Problem:** the tenant may change the form after bookings have already been created. Old bookings must remain readable with their original structure.
 
-**What is not versioned (just an audit log):**
-- Resource's marketing description, photos, name.
+**Solution:**
+- Each published version of the schema is **immutable**.
+- When a booking is created, the `schema_version_id` at the time of creation is stored.
+- To display an old booking, the system reads the schema version that was current at the time of creation.
 
-**The unit of a version is the entire schema as a whole**, not individual fields.
-
-**Version lifecycle:**
-- Draft — being edited, not active.
-- Published — the current active version.
-- Superseded — replaced by a newer version, but still needed to display old bookings.
-- Optional: scheduled (becomes active from date X).
-
-**A Published version is immutable.** Any change creates a new version.
-
-**Additive (non-breaking) changes:**
-- Adding an optional field.
-- Adding an option to a select.
-- Relaxing a validation rule.
-- Changing a label, reordering fields.
-- Making a required field optional.
-
-**Breaking changes:**
-- Deleting a field.
-- Renaming an identifier (prohibited).
+**What counts as a breaking change:**
+- Removing a required field.
 - Changing a field's type.
-- Adding a required field.
-- Removing a select option.
-- Tightening a validation rule.
+- Renaming a field identifier.
 
-**Linking a booking to a version:**
-A booking stores a reference to the schema + version number + field values. A booking **never migrates automatically** to a new version.
+**What is a compatible change (no new version required in MVP):**
+- Changing a label or hint.
+- Making a required field optional.
+- Adding a new optional field.
 
-**Reading old bookings:**
-1. Take the schema version it was created under.
-2. Display it according to the rules of that version.
-3. Old fields that were removed in a newer version are still shown.
-4. New fields are shown as "no data."
-
-**Data migration strategies:**
-- The main rule — **do not migrate**.
-- Store data in the format of the version it was created under.
-- For analytics — a separate mapping layer to the current representation.
-
-**Tenant experience in the editor:**
-- Draft mode.
-- Preview.
-- Diff against the current version.
-- Warnings about breaking changes.
-- Version history.
-- Rollback.
-- Scheduled publishing.
-
-**What else is frozen in a booking:**
-- Price at the time of creation.
-- Cancellation policy at the time of creation.
-- Key resource characteristics (for legal clarity).
-
-General principle: everything that affects the rights/obligations of the parties at the time of booking is frozen in the booking.
+**In MVP:** versioning is simplified — a snapshot of values is taken at the time of booking creation, so even if the schema is modified in-place, old bookings retain their original data structure.
 
 ---
 
-## Part III. MVP Plan
+## Part III. Bookings
 
-### Chapter 8. MVP Goals and Constraints
+### Chapter 8. Booking Lifecycle
 
-**MVP goal** — validate the hypothesis: can a single engine serve at least 2 different domains (e.g. rentals + fitness classes), with tenants configuring their own forms and schedules?
+```
+Pending → Confirmed → Completed
+                ↓
+           Cancelled
+```
 
-**What is in scope for MVP:**
-- One resource type per tenant.
-- Basic field types: text, number, date, single-select, checkbox.
-- Default system fields (name, phone, email, slot selection).
-- Fixed time slots (not arbitrary ranges).
-- Simple weekly working hours + blocking of specific dates.
-- Booking confirmation: automatic or manual (tenant's choice).
-- Statuses: pending, confirmed, cancelled, completed.
-- Email notifications (minimal set).
-- One owner per tenant (no teams).
-- Public tenant page accessible via slug.
+- **Pending** — created but not yet confirmed (used when `auto_confirm = false`).
+- **Confirmed** — confirmed by the tenant or automatically.
+- **Completed** — the booking time has passed and the booking was not cancelled.
+- **Cancelled** — cancelled by the client, tenant, or automatically.
 
-**What is NOT in MVP (deferred):**
-- Multiple resource types per tenant.
-- Conditional logic in forms.
-- Schema versioning (simplified: changes apply immediately, but old bookings retain a snapshot of their values).
-- Complex pricing rules, deposits.
-- Online payments.
-- Cancellation policy with rules.
-- Multi-language support.
-- Waitlist, overbooking.
-- Teams/roles within a tenant.
-- Reviews.
-- Mobile app.
-- Advanced analytics.
+All status transitions are recorded in the audit log (`booking_status_history`).
 
-**MVP success criteria:**
-- 2 pilot tenants from different domains can accept real bookings.
-- A client completes the flow "select slot → fill form → confirmation" without errors.
-- No cases of double booking.
-- Tenant can view and manage their bookings via the dashboard.
+### Chapter 9. Key Decisions
 
-### Chapter 9. Architectural Decisions (Summary)
-
-**Multi-tenancy strategy:**
-Recommendation for MVP — **shared database, shared schema with tenant_id**. The simplest approach, easy to scale and maintain, cheapest at the start. Migration to separate schemas or databases is possible later for large clients.
-
-**Authentication:**
-Two independent contexts — tenant user (logging into the admin panel) and client (logging in to view their own bookings, optional). Guest bookings without registration are supported.
+**Guest bookings:**
+Guest bookings without registration are supported.
 
 **Storing booking values:**
-Structure: `(field_id, value)` pairs + reference to schema. Preserves historical data.
+Structure: `(field_key, value)` pairs + reference to the schema version at the time of creation. Preserves historical data.
 
 **Time zones:**
 Always store in UTC. Display in the resource's time zone for the tenant, and in the client's (or resource's) time zone for the client.
 
 **Double-booking protection:**
-Use the database layer: a unique index or a locking transaction on booking creation for a specific (resource, slot) pair.
+Enforced at the database layer: a partial unique index on `(resource_id, slot_start_at) WHERE status IN ('Pending', 'Confirmed')`.
+
+---
+
+## Part IV. Notifications
+
+### Chapter 9a. Notification Channels
+
+Notifications are delivered to configurable channels — not to tenant user accounts directly. This allows routing to shared mailboxes, webhooks, or Slack without requiring a `tenant_user` login.
+
+**Channel types (MVP):** `Email`, `Webhook`, `Slack`
+
+**Event types:**
+- `BookingCreated` — a new booking has been submitted.
+- `BookingConfirmed` — a booking has been confirmed.
+- `BookingCancelled` — a booking has been cancelled.
+- `BookingRescheduled` — a booking slot has changed.
+- `DailySummary` — end-of-day digest.
+
+**Rules:**
+- A tenant can have multiple channels (e.g. a reception inbox + a Slack alert).
+- Each channel subscribes to a specific set of event types.
+- On tenant registration, one default `Email` channel is seeded automatically, pointing to the owner's email with all event types enabled.
+- Channels can be enabled/disabled individually without deletion.
+
+**Post-MVP:** SMS, push notifications.
+
+---
+
+## Part V. MVP Scope
 
 ### Chapter 10. MVP Phases and Tasks
 
@@ -314,13 +190,12 @@ Estimated timeline for a single full team (1–2 developers + designer). Numbers
 
 Infrastructure setup and basic entities.
 
-Tasks:
 - [ ] Finalize the technology stack (frontend, backend, DB, queue, email provider).
 - [ ] Create the repository, set up CI/CD pipeline (lint, tests, deploy).
-- [ ] Define the ER model for core entities: tenant, resource, schedule, slot, booking, schema, schema_field.
+- [ ] Define the ER model for core entities: tenant, resource, schedule, slot, booking, schema, schema_field, notification_channel.
 - [ ] Implement DB migrations.
-- [ ] Set up authentication for tenant users (email + password).
-- [ ] Basic role system (only "owner" for tenant for now).
+- [ ] Set up authentication for tenant users (email + password via OpenIddict).
+- [ ] Basic role system (only "Owner" for tenant in MVP).
 - [ ] Logging and basic error monitoring.
 - [ ] Connect email notifications sandbox.
 
@@ -330,9 +205,10 @@ Tasks:
 
 Tenant can register and create their first resource.
 
-Tasks:
 - [ ] Tenant registration (form + email confirmation).
-- [ ] Tenant profile page: name, timezone, contacts, slug.
+- [ ] Tenant profile page: name, timezone, slug.
+- [ ] Notification channels UI: view, add, edit, toggle active state.
+- [ ] Default channel seeded automatically on registration.
 - [ ] CRUD for a single resource: name, description, photos (1–3).
 - [ ] Resource slug (generation and editing).
 - [ ] Basic validations on the resource form.
@@ -343,15 +219,14 @@ Tasks:
 
 Tenant configures what data is collected from the client.
 
-Tasks:
 - [ ] Form schema and field model in the DB.
 - [ ] Editor UI: field list, add/remove/reorder.
-- [ ] Support for 5 field types: short_text, number, date, single_select, checkbox.
+- [ ] Support for 5 field types: `short_text`, `number`, `date`, `single_select`, `checkbox`.
 - [ ] Field properties: label, identifier, required flag, hint.
 - [ ] Type-based validation (min/max length for text, min/max for number, list of values for select).
 - [ ] System fields added automatically (name, phone, email, slot selection).
 - [ ] Form preview — tenant sees what the client will see.
-- [ ] Schema saving (no versioning in MVP — in-place update, but a snapshot of values is taken when a booking is created).
+- [ ] Schema saving (snapshot of values taken when a booking is created).
 - [ ] Warning to tenant: "if you edit the form, new bookings will have the new structure; existing ones remain as-is."
 
 ---
@@ -360,63 +235,40 @@ Tasks:
 
 Tenant configures when the resource is available.
 
-Tasks:
-- [ ] Working hours configuration by day of week (e.g. Mon–Fri 9:00–18:00).
-- [ ] Duration of a single slot (15/30/60 minutes or custom).
+- [ ] Working hours by day of week (e.g. Mon–Fri 9:00–18:00).
+- [ ] Slot duration (15/30/60 minutes or custom).
 - [ ] Buffer between slots (optional).
 - [ ] Blocking specific dates (vacation, holidays, maintenance).
 - [ ] Generation of available slots for the next N days.
 - [ ] API "get free slots for a date range" — accounts for existing bookings and blocked dates.
-- [ ] Minimum lead time before a booking starts (cannot book for "right now").
-- [ ] Maximum booking horizon (cannot book a year in advance).
 
 ---
 
-#### Phase 4. Client Booking Flow (2 weeks)
+#### Phase 4. Booking Flow (2 weeks)
 
-Client lands on the public page and creates a booking.
+Client can select a slot and submit a booking.
 
-Tasks:
-- [ ] Public routing by tenant/resource slug.
-- [ ] Resource page: description, photos, tenant info.
-- [ ] Calendar of available slots (from the Phase 3 API).
-- [ ] Slot selection.
-- [ ] Dynamic form based on tenant schema (system + custom fields).
-- [ ] Client-side form validation.
-- [ ] Server-side validation (formal + business: slot is free, minimum lead time not violated).
-- [ ] Double-booking protection (transaction or unique index).
-- [ ] Saving values as (field_id, value) pairs + schema reference.
-- [ ] Success page with booking number.
-- [ ] Confirmation email to client.
-- [ ] Notification email to tenant about a new booking.
+- [ ] Public booking page for the resource (by tenant slug + resource slug).
+- [ ] Slot picker UI (calendar or list).
+- [ ] Dynamic form rendering based on the tenant's schema.
+- [ ] Client-side validation (required fields, type rules).
+- [ ] Booking submission — server validates and creates the booking.
+- [ ] Double-booking protection at the DB level (partial unique index).
+- [ ] Email confirmation to the client.
+- [ ] Notification dispatch to configured tenant channels on `BookingCreated`.
+- [ ] Booking confirmation page (with `external_reference` code, e.g. `BK-2026-00042`).
 
 ---
 
-#### Phase 5. Booking Management (1–2 weeks)
+#### Phase 5. Tenant Dashboard (1–2 weeks)
 
-Tenant views and processes bookings in their admin panel.
+Tenant manages their bookings.
 
-Tasks:
-- [ ] Tenant dashboard — booking list.
-- [ ] Filters: status, date, search by name/phone.
-- [ ] Booking card — all client data + action history.
-- [ ] Booking actions: confirm, cancel, mark as completed, mark as no-show.
-- [ ] Tenant setting: auto-confirm or manual confirmation.
-- [ ] Email to client on status change.
-- [ ] Reminder to client 24 hours / 1 hour before the booking (cron job).
-- [ ] Audit history of actions (who, when, which status was changed).
-
----
-
-#### Phase 6. Polish and Launch (1 week)
-
-Clean up and launch with pilot tenants.
-
-Tasks:
-- [ ] Testing edge cases: race conditions on booking creation, attempt to book a past time slot, attempt to cancel an already completed booking.
-- [ ] Data isolation audit — tenant A must never see tenant B's data under any circumstances.
-- [ ] Basic styling of the public page and admin panel.
-- [ ] Tenant documentation (how to configure a resource, form, and schedule).
+- [ ] Booking list with filters: date, status, search by client name/email.
+- [ ] Booking detail page (all field values, status history).
+- [ ] Manual confirm / cancel actions.
+- [ ] Notification dispatch to configured channels on status changes.
+- [ ] Daily summary email (opt-in, via `DailySummary` channel event).
 - [ ] Simple landing page for the platform.
 - [ ] Deploy to production.
 - [ ] Onboard 2 pilot tenants from different domains.
@@ -471,3 +323,4 @@ These are load-bearing rules — the entire universality of the platform rests o
 6. **Double-booking of a single resource instance is impossible by DB design.**
 7. **All amounts, policies, and characteristics affecting the parties' rights are frozen in the booking.**
 8. **Tenant isolation is a mandatory constraint on every data query.**
+9. **Notification delivery targets are decoupled from user accounts.** A channel can point to any address or endpoint; no `tenant_user` account is required.
