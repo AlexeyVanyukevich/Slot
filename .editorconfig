@@ -252,3 +252,9 @@ dotnet_diagnostic.CS8618.severity = none
 
 # CA1812: Internal class never instantiated - does not account for DI/reflection instantiation patterns.
 dotnet_diagnostic.CA1812.severity = none
+
+# CA1040: Avoid empty interfaces - intentional for CQRS marker interfaces (IRequest, ICommand, IQuery).
+dotnet_diagnostic.CA1040.severity = none
+
+# S2326: Unused type parameter - intentional phantom type for compile-time response type carrying (IRequest<TResponse>).
+dotnet_diagnostic.S2326.severity = none
