@@ -14,5 +14,6 @@
     <Project Path="UBP.Tenant.Persistence/UBP.Tenant.Persistence.csproj" Id="a9a8c384-b169-4e45-be62-12c179b7967d" />
     <Project Path="UBP.Tenant/UBP.Tenant.Domain/UBP.Tenant.Domain.csproj" />
   </Folder>
+  <Project Path="UBP.CQRS/UBP.CQRS.csproj" />
   <Project Path="UBP.Logging/UBP.Logging.csproj" Id="534e04af-4a55-4c98-b242-5fa2f9561d02" />
 </Solution>
