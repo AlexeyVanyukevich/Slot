@@ -9,7 +9,12 @@
     <Project Path="UBP.Core/UBP.Core.Persistence.EF/UBP.Core.Persistence.EF.csproj" />
     <Project Path="UBP.Core/UBP.Core.Persistence/UBP.Core.Persistence.csproj" />
   </Folder>
-  <Folder Name="/UBP.IAM/" />
+  <Folder Name="/UBP.IAM/">
+    <Project Path="UBP.IAM/UBP.IAM.API/UBP.IAM.API.csproj" />
+    <Project Path="UBP.IAM/UBP.IAM.Application/UBP.IAM.Application.csproj" />
+    <Project Path="UBP.IAM/UBP.IAM.Domain/UBP.IAM.Domain.csproj" />
+    <Project Path="UBP.IAM/UBP.IAM.Persistence/UBP.IAM.Persistence.csproj" />
+  </Folder>
   <Folder Name="/UBP.Tenant/">
     <Project Path="UBP.Tenant/UBP.Tenant.Domain/UBP.Tenant.Domain.csproj" />
     <Project Path="UBP.Tenant/UBP.Tenant.Persistence/UBP.Tenant.Persistence.csproj" />
@@ -18,4 +23,6 @@
   <Project Path="UBP.Cache.InMemory/UBP.Cache.InMemory.csproj" />
   <Project Path="UBP.CQRS/UBP.CQRS.csproj" />
   <Project Path="UBP.Logging/UBP.Logging.csproj" Id="534e04af-4a55-4c98-b242-5fa2f9561d02" />
+  <Project Path="UBP.Options.Configuration/UBP.Options.Configuration.csproj" Id="467c66fb-1b4a-45f9-8445-25656ce492e5" />
+  <Project Path="UBP.Result/UBP.Result.csproj" />
 </Solution>
