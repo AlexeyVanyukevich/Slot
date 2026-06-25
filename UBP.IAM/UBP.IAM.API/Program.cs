@@ -8,6 +8,8 @@ using UBP.IAM.API.Extensions;
 using UBP.IAM.Application;
 using UBP.IAM.Persistence.Options;
 using UBP.Logging;
+using UBP.OpenApi;
+using UBP.OpenApi.Scalar;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -53,6 +55,13 @@ builder.Services.AddOpenIdConnect()
         options.UseAspNetCore();
     });
 
+builder.Services.AddOpenApiDocumentation(options =>
+{
+    options.Title = "IAM API";
+    options.Version = "v1";
+    options.Description = "Identity and Access Management API";
+});
+
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 
@@ -65,6 +74,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapOpenApiDocumentation();
 app.MapRazorPages();
 app.MapControllers();
 

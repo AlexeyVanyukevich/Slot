@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\UBP.IAM.Application\UBP.IAM.Application.csproj" />
     <ProjectReference Include="..\..\UBP.Logging\UBP.Logging.csproj" />
+    <ProjectReference Include="..\..\UBP.OpenApi.Scalar\UBP.OpenApi.Scalar.csproj" />
   </ItemGroup>
 
 </Project>
