@@ -134,16 +134,44 @@ Purpose: the thing being booked. One per tenant in MVP, but the architecture sup
 
 ---
 
-## Table: resource_photos
+## Table: assets
 
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| id | uuid | no | PK |
-| resource_id | uuid | no | FK |
-| url | varchar(500) | no | |
-| display_order | int | no | for sorting |
+Purpose: owned entirely by the asset storage implementation (see `docs/asset-storage-spec.md`) — one row per stored object, independent of what references it. Metadata only — the actual bytes live in the storage backend.
 
-**Indexes:** index on `resource_id`.
+| Column | Type | Nullable | Default | Notes |
+|---|---|---|---|---|
+| id | uuid | no | — | PK |
+| tenant_id | uuid | no | — | FK → tenants; denormalized so storage-key isolation doesn't need a join |
+| asset_type | varchar(20) | no | `'Photo'` | enum: `Photo` in MVP; `Document`, `Video` reserved |
+| storage_key | varchar(500) | no | — | key/path in the storage backend, `{tenant_id}/{asset_id}.{ext}` |
+| content_type | varchar(100) | no | — | MIME type, validated against policy at upload time |
+| size_bytes | bigint | no | — | validated against policy at upload time |
+| created_at | timestamptz | no | `now()` | |
+
+**Indexes:**
+- index on `tenant_id`
+- index on `(tenant_id, asset_type)`
+
+> **Why no `url` column:** the public/signed URL is derived from `storage_key` by the asset storage layer at read time, not stored — this keeps the row valid if the storage backend or CDN domain changes.
+> **Row lifecycle:** a row is inserted only after the object is confirmed written to storage, and deleted only after the object is confirmed removed — never leave a row pointing at a missing object.
+> **No `resource_id` here:** this table doesn't know what it's attached to — that's the job of a link table like `resource_assets` below. Keeps the storage implementation reusable by any future owner (tenant logo, booking attachment, ...) without a schema change.
+
+---
+
+## Table: resource_assets
+
+Purpose: links a resource to its assets and orders them. Owned by the resource domain, not the storage implementation — knows nothing about `storage_key`, `content_type`, etc.
+
+| Column | Type | Nullable | Default | Notes |
+|---|---|---|---|---|
+| id | uuid | no | — | PK |
+| resource_id | uuid | no | — | FK → resources |
+| asset_id | uuid | no | — | FK → assets |
+| display_order | int | no | `0` | for sorting |
+
+**Indexes:**
+- index on `resource_id`
+- UK on `(resource_id, asset_id)`
 
 ---
 
@@ -187,33 +215,36 @@ Purpose: date blocks (vacation, maintenance, holidays).
 
 ---
 
-## Table: form_schemas
+## Table: field_schemas
 
-Purpose: container for form fields. One per resource in MVP.
+Purpose: generic container for a set of tenant-defined fields. Shared by both configuration levels from Chapter 1 (`docs/booking-platform-spec.md`) instead of duplicating near-identical tables per use case — the resource's own descriptive attributes and the booking-time client form differ only in `kind`, not in shape. One schema of each `kind` per resource in MVP.
 
 | Column | Type | Nullable | Default | Notes |
 |---|---|---|---|---|
 | id | uuid | no | — | PK |
-| resource_id | uuid | no | — | FK, UK (one-to-one) |
-| version | int | no | `1` | reserved for versioning |
+| resource_id | uuid | no | — | FK |
+| kind | varchar(20) | no | — | enum: `ResourceAttributes`, `BookingForm` |
+| version | int | yes | `1` | meaningful only for `kind = BookingForm` (Chapter 7, Schema Versioning); unused/ignored for `ResourceAttributes`, which is always edited in place |
 | created_at | timestamptz | no | `now()` | |
 | updated_at | timestamptz | no | `now()` | |
 
-**Indexes:** UK on `resource_id`.
+**Indexes:** UK on `(resource_id, kind)`.
 
 ---
 
-## Table: form_fields
+## Table: field_definitions
+
+Purpose: individual field definitions within a `field_schemas` row — the single shared shape for both configuration levels (Chapters 2–6 of `docs/booking-platform-spec.md`).
 
 | Column | Type | Nullable | Notes |
 |---|---|---|---|
 | id | uuid | no | PK |
-| schema_id | uuid | no | FK |
+| schema_id | uuid | no | FK → `field_schemas` |
 | field_key | varchar(50) | no | stable machine name |
 | label | varchar(200) | no | |
 | field_type | varchar(20) | no | `ShortText`, `Number`, `Date`, `SingleSelect`, `Checkbox` |
 | is_required | boolean | no | |
-| is_system | boolean | no | system fields cannot be deleted |
+| is_system | boolean | no, default `false` | meaningful only when the parent schema's `kind = BookingForm` (system fields cannot be deleted); always `false` for `ResourceAttributes` — the engine mandates no default resource attributes |
 | display_order | int | no | |
 | placeholder | varchar(200) | yes | |
 | help_text | varchar(500) | yes | |
@@ -237,7 +268,7 @@ builder.Property(f => f.ValidationRules)
         v => JsonSerializer.Deserialize<ValidationRules>(v, JsonOptions));
 ```
 
-**System fields** (created automatically when a resource is created):
+**System fields** (created automatically on the `BookingForm` schema when a resource is created):
 
 | field_key | Type | Required | Notes |
 |---|---|---|---|
@@ -246,7 +277,29 @@ builder.Property(f => f.ValidationRules)
 | customer_phone | ShortText | yes | |
 | customer_notes | ShortText | no | |
 
-> Slot selection is a separate entity (`slot_start_at` in booking), not a form field.
+> Slot selection is a separate entity (`slot_start_at` in booking), not a booking field.
+
+> **One service, one table pair:** CRUD, Layer 1/2 validation (Chapter 4), and conditional-logic evaluation (Chapter 5) for `field_schemas`/`field_definitions` are implemented once, in a single field-schema service parameterized by `kind` — neither the resource-attribute flow nor the booking-form flow gets its own copy of this logic.
+
+---
+
+## Table: resource_attribute_values
+
+Purpose: the owner-filled current value for each field of the resource's `ResourceAttributes` schema. Always current — overwritten in place when the owner edits, never versioned or snapshotted.
+
+| Column | Type | Nullable | Notes |
+|---|---|---|---|
+| id | uuid | no | PK |
+| resource_id | uuid | no | FK, denormalized for direct queries |
+| field_id | uuid | no | FK → `field_definitions`, `CASCADE` |
+| value | jsonb | no | universal storage — same format convention as `booking_field_values` |
+| updated_at | timestamptz | no | |
+
+**Indexes:**
+- index on `resource_id`
+- UK on `(resource_id, field_id)`
+
+> **Why FK to `field_id` instead of duplicating `field_key`/`field_type`** (unlike `booking_field_values`, which duplicates them for resilience): these values are not a historical snapshot — they must always reflect the current schema. If a field is deleted, `CASCADE` removes its values too; there's no snapshot to protect.
 
 ---
 
@@ -259,7 +312,7 @@ Purpose: the core entity of the system.
 | id | uuid | no | — | PK |
 | tenant_id | uuid | no | — | denormalized for filtering |
 | resource_id | uuid | no | — | FK |
-| schema_id | uuid | no | — | FK, which schema was used |
+| schema_id | uuid | no | — | FK → `field_schemas` (`kind = BookingForm`), which schema version was used |
 | slot_start_at | timestamptz | no | — | UTC |
 | slot_end_at | timestamptz | no | — | UTC |
 | status | varchar(20) | no | `'Pending'` | enum |
@@ -305,7 +358,7 @@ Purpose: snapshot of all form field values at the time the booking was created.
 |---|---|---|---|
 | id | uuid | no | PK |
 | booking_id | uuid | no | FK |
-| field_key | varchar(50) | no | duplicated from form_fields for resilience |
+| field_key | varchar(50) | no | duplicated from field_definitions for resilience |
 | field_type | varchar(20) | no | duplicated for correct rendering |
 | value | jsonb | no | universal storage |
 
@@ -355,9 +408,10 @@ Purpose: audit log of booking status changes.
 | Parent | Child | Behavior | Reason |
 |---|---|---|---|
 | `Tenant` | `TenantUser`, `Resource`, `TenantNotificationChannel` | `RESTRICT` / `CASCADE` | Users and resources: `RESTRICT`. Notification channels: `CASCADE` — they're config, not business data. |
-| `Resource` | `ResourcePhoto`, `WeeklySchedule`, `ScheduleException` | `CASCADE` | Deleting a resource cleans up its data |
+| `Resource` | `ResourceAsset` (link), `WeeklySchedule`, `ScheduleException` | `CASCADE` | Deleting a resource removes its asset links; `Asset` rows are not FK-linked to `Resource` and are not cascaded (see Asset Storage) |
 | `Resource` | `Booking` | `RESTRICT` | Cannot delete a resource with active bookings — archive first |
-| `Resource` | `FormSchema` → `FormField` | `CASCADE` | |
+| `Resource` | `FieldSchema` (both `kind`s) → `FieldDefinition` | `CASCADE` | |
+| `Resource` | `ResourceAttributeValue` (direct FK) | `CASCADE` | Also removed directly since `resource_id` is denormalized on the value row (in addition to the cascade arriving via `FieldDefinition`) |
 | `Booking` | `BookingFieldValue`, `BookingStatusHistory` | `CASCADE` | |
 
 ### Soft Delete

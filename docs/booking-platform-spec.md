@@ -5,7 +5,7 @@
 
 ## Part I. General Concept
 
-The goal is to build a booking engine where the core mechanics (tenants, resources, time, booking statuses) are the same for everyone, while domain-specific details (what is being booked, what data is collected, what rules apply) are extracted into tenant configuration. The same product serves house rentals, fitness class sign-ups, table reservations, service appointments, and so on.
+The main goal is to build an **abstract booking engine**: the core mechanics (tenants, resources, time, booking statuses) are the same for everyone and governed by a fixed set of required rules (see the Appendix, "Core Rules That Must Never Be Violated"), while domain-specific details (what is being booked, what data is collected, what rules apply) are extracted into tenant configuration. The same product serves house rentals, fitness class sign-ups, table reservations, service appointments, and so on — any concrete vertical is just a configuration of the abstract engine, never a fork of it.
 
 ### Key Entities
 
@@ -14,7 +14,7 @@ The goal is to build a booking engine where the core mechanics (tenants, resourc
 - **Availability Slot** — a time window in which a resource can be booked.
 - **Booking** — the act of reserving a specific resource at a specific time, with data filled in according to the tenant's schema.
 - **Client** — the person who books. Can be a guest without an account or a registered user.
-- **Booking Configuration** — the field schema that the tenant defines themselves.
+- **Resource Schema** — the field schema a resource requires from the client at booking time, defined by the tenant.
 
 ### Core Architectural Principles
 
@@ -30,14 +30,14 @@ The goal is to build a booking engine where the core mechanics (tenants, resourc
 ### Chapter 1. Two Levels of Configuration
 
 **Resource configuration** — a description of the thing being booked. Filled out by the owner once at creation:
-- For a house: address, bedrooms, amenities, photos, rules, minimum rental period.
+- For a house: address, bedrooms, amenities, assets (photos), rules, minimum rental period.
 - For a fitness class: name, description, level, equipment, duration.
 
 **Booking form configuration** — what is collected from the client at the time of booking:
 - For a house: check-in/check-out dates, number of guests, purpose of trip, whether pets are present.
 - For a fitness class: name, phone, experience level, medical restrictions.
 
-These entities **are not mixed**. The resource describes "what is on offer"; the form describes "what to ask the client."
+These entities **are not mixed**. The resource describes "what is on offer"; the form describes "what to ask the client." Both are two `kind`s of the same generic `field_schemas`/`field_definitions` tables (see `docs/db-spec-mvp.md`) — one field-definition shape, one shared service, sharing the same mechanics described in Chapters 2–6 below, rather than two near-identical implementations. They differ in one respect: the resource description (`kind = ResourceAttributes`) is filled in by the owner and holds a single current value per field in `resource_attribute_values` (edited in place, never versioned), while the booking form (`kind = BookingForm`) is filled in by the client at booking time and is subject to schema versioning (Chapter 7), since past bookings must keep reading the schema that was current when they were created.
 
 ### Chapter 2. Form Field Definition
 
@@ -117,6 +117,10 @@ Options for `single_select` fields are **static** in MVP — defined when the fo
 - Adding a new optional field.
 
 **In MVP:** versioning is simplified — a snapshot of values is taken at the time of booking creation, so even if the schema is modified in-place, old bookings retain their original data structure.
+
+### Chapter 7a. Asset Storage
+
+Resources carry file attachments — photos in MVP, with documents/videos reserved for later. Storage of the underlying bytes is a separate implementation, owning its own `assets` table; the resource domain only holds a `resource_assets` link table, behind a policy-enforcing abstraction. Full design, including the storage-key convention, required upload policies, and lifecycle rules: see `docs/asset-storage-spec.md`.
 
 ---
 
@@ -209,7 +213,8 @@ Tenant can register and create their first resource.
 - [ ] Tenant profile page: name, timezone, slug.
 - [ ] Notification channels UI: view, add, edit, toggle active state.
 - [ ] Default channel seeded automatically on registration.
-- [ ] CRUD for a single resource: name, description, photos (1–3).
+- [ ] CRUD for a single resource: name, description, assets (1–3 photos).
+- [ ] Asset storage component (upload/access-url/delete) behind a swappable provider, with content-type/size/count policy checks.
 - [ ] Resource slug (generation and editing).
 - [ ] Basic validations on the resource form.
 
@@ -324,3 +329,4 @@ These are load-bearing rules — the entire universality of the platform rests o
 7. **All amounts, policies, and characteristics affecting the parties' rights are frozen in the booking.**
 8. **Tenant isolation is a mandatory constraint on every data query.**
 9. **Notification delivery targets are decoupled from user accounts.** A channel can point to any address or endpoint; no `tenant_user` account is required.
+10. **Asset storage is abstracted behind a policy-enforcing interface.** Domain code never writes to disk/bucket paths directly; every upload passes the same content-type/size/count checks, and tenant isolation extends to storage keys, not just DB queries.

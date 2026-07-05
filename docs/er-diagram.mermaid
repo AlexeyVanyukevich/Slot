@@ -3,14 +3,19 @@ erDiagram
     Tenant ||--o{ Resource : "owns"
     Tenant ||--o{ Booking : "owns"
 
-    Resource ||--o{ ResourcePhoto : "has"
+    Resource ||--o{ ResourceAsset : "has"
+    ResourceAsset }o--|| Asset : "references"
+    Tenant ||--o{ Asset : "owns (isolation)"
     Resource ||--o{ WeeklySchedule : "weekly hours"
     Resource ||--o{ ScheduleException : "blocked dates"
-    Resource ||--|| FormSchema : "one schema"
+    Resource ||--o{ FieldSchema : "has (kind: ResourceAttributes | BookingForm)"
     Resource ||--o{ Booking : "receives"
 
-    FormSchema ||--o{ FormField : "fields"
-    FormSchema ||--o{ Booking : "snapshotted by"
+    FieldSchema ||--o{ FieldDefinition : "fields"
+    FieldSchema ||--o{ Booking : "snapshotted by (kind=BookingForm)"
+
+    Resource ||--o{ ResourceAttributeValue : "has"
+    FieldDefinition ||--o{ ResourceAttributeValue : "values (kind=ResourceAttributes)"
 
     Booking ||--o{ BookingFieldValue : "values"
     Booking ||--o{ BookingStatusHistory : "audit log"
@@ -52,11 +57,21 @@ erDiagram
         timestamptz UpdatedAt
     }
 
-    ResourcePhoto {
+    ResourceAsset {
         uuid Id PK
         uuid ResourceId FK
-        string Url
+        uuid AssetId FK
         int DisplayOrder
+    }
+
+    Asset {
+        uuid Id PK
+        uuid TenantId FK "denormalized for storage-key isolation"
+        enum AssetType "Photo (MVP); Document Video reserved"
+        string StorageKey "key in asset storage backend"
+        string ContentType "MIME, validated by policy"
+        long SizeBytes "validated by policy"
+        timestamptz CreatedAt
     }
 
     WeeklySchedule {
@@ -79,22 +94,23 @@ erDiagram
         string Reason
     }
 
-    FormSchema {
+    FieldSchema {
         uuid Id PK
-        uuid ResourceId FK,UK
-        int Version "always 1 in MVP"
+        uuid ResourceId FK
+        enum Kind "ResourceAttributes BookingForm"
+        int Version "meaningful only for BookingForm"
         timestamptz CreatedAt
         timestamptz UpdatedAt
     }
 
-    FormField {
+    FieldDefinition {
         uuid Id PK
         uuid SchemaId FK
         string FieldKey "stable machine name"
         string Label
         enum FieldType "ShortText Number Date SingleSelect Checkbox"
         bool IsRequired
-        bool IsSystem "system fields not deletable"
+        bool IsSystem "meaningful only for BookingForm; always false otherwise"
         int DisplayOrder
         string Placeholder
         string HelpText
@@ -102,11 +118,19 @@ erDiagram
         jsonb Options "for selects"
     }
 
+    ResourceAttributeValue {
+        uuid Id PK
+        uuid ResourceId FK "denormalized"
+        uuid FieldId FK "CASCADE"
+        jsonb Value
+        timestamptz UpdatedAt
+    }
+
     Booking {
         uuid Id PK
         uuid TenantId FK "denormalized"
         uuid ResourceId FK
-        uuid SchemaId FK "schema snapshot"
+        uuid SchemaId FK "FieldSchema snapshot, kind=BookingForm"
         timestamptz SlotStartAt
         timestamptz SlotEndAt
         enum Status "Pending Confirmed Cancelled Completed NoShow"
@@ -125,7 +149,7 @@ erDiagram
     BookingFieldValue {
         uuid Id PK
         uuid BookingId FK
-        string FieldKey "snapshot from FormField"
+        string FieldKey "snapshot from FieldDefinition"
         enum FieldType "snapshot for display"
         jsonb Value
     }
