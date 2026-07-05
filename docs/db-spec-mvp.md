@@ -14,12 +14,13 @@
 - Provider: `Npgsql.EntityFrameworkCore.PostgreSQL`.
 - Naming conventions: `EFCore.NamingConventions` (`UseSnakeCaseNamingConvention()`).
 - All configuration via **Fluent API** in `IEntityTypeConfiguration<T>`. No attributes on entities.
-- One `DbContext` for the entire domain. Separate `DbContext` for the auth server (OpenIddict).
+- One `DbContext` **per module** (`TenantDbContext`, `BookingDbContext`, `NotificationsDbContext`, ...), all pointed at the same domain database — not one shared `DbContext`/EF model spanning every module. Separate `DbContext` (and separate database) for the auth server (OpenIddict). See `docs/booking-engine-architecture-spec.md`, Part II, for the full rationale and the consequences (per-module migrations history table, hand-added cross-module FKs, no cross-context joins).
 
 ### Migrations
 - Created with `dotnet ef migrations add InitialCreate`.
 - Applied automatically on API startup in Development only. In Production — as a separate deployment step (`dotnet ef migrations bundle` or explicit `dotnet ef database update`).
 - Migration names — descriptive: `AddBookingFieldValueIndexes`, `RenameResourceTimezone`, etc.
+- Each module's `DbContext` sets its own `MigrationsHistoryTable` (e.g. `__EFMigrationsHistory_Booking`) so migrations from different modules against the same database don't collide on the default `__EFMigrationsHistory` table.
 
 ---
 
@@ -446,7 +447,7 @@ public override Task<int> SaveChangesAsync(CancellationToken ct = default)
 
 - [ ] Install EF Core 10+ and `Npgsql.EntityFrameworkCore.PostgreSQL`.
 - [ ] Install `EFCore.NamingConventions`.
-- [ ] Create `BookingDbContext` with `IEntityTypeConfiguration<T>` for each entity.
+- [ ] Create each module's own `DbContext` (e.g. `BookingDbContext`) with `IEntityTypeConfiguration<T>` for that module's own entities only, plus its own `MigrationsHistoryTable`.
 - [ ] Generate the first migration `InitialCreate`.
 - [ ] Spin up Postgres locally via docker-compose.
 - [ ] Apply the migration.
