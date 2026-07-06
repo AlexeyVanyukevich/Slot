@@ -8,12 +8,31 @@ internal sealed class RepositoryFactory : Persistence.Factories.RepositoryFactor
 {
     public override IRepository<TEntity> Create<TEntity>(IDbContext dbContext) where TEntity : class
     {
-        if (typeof(TEntity).IsAssignableTo(typeof(Entity)) && typeof(TEntity).GetConstructor(Type.EmptyTypes) is not null)
+        var entityType = typeof(TEntity);
+
+        if (entityType.GetConstructor(Type.EmptyTypes) is not null)
         {
-            var repoType = typeof(EntityRepository<>).MakeGenericType(typeof(TEntity));
+            var entityIdType = GetEntityIdType(entityType)
+                ?? throw new InvalidOperationException($"Could not determine the id type for entity '{entityType}'.");
+
+            var repoType = typeof(EntityRepository<,>).MakeGenericType(entityType, entityIdType);
             return (IRepository<TEntity>)Activator.CreateInstance(repoType, dbContext)!;
         }
 
         return base.Create<TEntity>(dbContext);
+    }
+
+    private static Type? GetEntityIdType(Type entityType)
+    {
+        var type = entityType;
+        while (type is not null)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Entity<>))
+                return type.GetGenericArguments()[0];
+
+            type = type.BaseType;
+        }
+
+        return null;
     }
 }

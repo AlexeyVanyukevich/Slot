@@ -3,7 +3,7 @@ using UBP.Core.Persistence.Interfaces;
 
 namespace UBP.Core.Data.EF.Interfaces;
 
-public interface IEntityRepository<TEntity> : IRepository<TEntity> where TEntity : Entity
+public interface IEntityRepository<TEntity, TKey> : IRepository<TEntity> where TEntity : Entity<TKey>
 {
-    void Delete(int id);
+    void Delete(TKey id);
 }

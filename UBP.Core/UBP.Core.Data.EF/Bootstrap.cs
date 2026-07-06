@@ -24,10 +24,14 @@ public static class Bootstrap
         yield return sp.GetRequiredService<SoftDeletableInterceptor>();
     }
 
-    public static IServiceCollection AddUnitOfWork(this IServiceCollection services, Func<IServiceProvider, IDbContext> dbContextFactory)
+    public static IServiceCollection AddUnitOfWork(this IServiceCollection services, Func<IServiceProvider, IDbContext> dbContextFactory, Func<IServiceProvider, IRepositoryFactory>? repositoryFactoryFactory = null)
     {
-        services.AddScoped<RepositoryFactory>();
-        services.AddUnitOfWork(dbContextFactory, sp => sp.GetRequiredService<RepositoryFactory>());
+        if (repositoryFactoryFactory is null)
+        {
+            services.AddScoped<RepositoryFactory>();
+            repositoryFactoryFactory = sp => sp.GetRequiredService<RepositoryFactory>();
+        }
+        Persistence.Bootstrap.AddUnitOfWork(services, dbContextFactory, repositoryFactoryFactory);
         return services;
     }
 

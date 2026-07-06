@@ -1,6 +1,6 @@
 namespace UBP.Core.Entities;
 
-public class Entity
+public class Entity<TKey>
 {
-    public int Id { get; set; }
+    public TKey Id { get; set; }
 }
