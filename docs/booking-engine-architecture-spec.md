@@ -93,7 +93,7 @@ public class Entity<TKey>
 There is **no backward-compatible non-generic `Entity` anymore** — every entity must close `Entity<TKey>` with an explicit type argument, `int` or `Guid`, whichever the table's PK actually is. Use `Guid` only where the schema calls for it:
 
 - **Booking module entities** (`AvailabilitySlotEntity`, `BookingEntity`, `BookingStatusHistoryEntity`, and the rest of `db-spec-mvp.md`'s `uuid`-PK tables) derive from `Entity<Guid>`, with PKs generated via `Guid.CreateVersion7()` in the entity constructor or a factory (`UBP.Core.Data.EF/Factories/RepositoryFactory.cs` or a new `IdFactory` are the natural homes — check before adding a third place PKs get generated).
-- **`TenantEntity` must declare its key type explicitly too** — bare `TenantEntity : Entity` no longer compiles now that `Entity` requires a type argument. Per `db-spec-mvp.md`'s `tenants.id uuid` column, the correct fix is `TenantEntity : Entity<Guid>` (matching the app-side `Guid.CreateVersion7()` PK convention), not `Entity<int>` — the previous `int Id` was drift against the DB spec, not an intentional deviation worth preserving. This is a currently-broken build (`TenantEntity.cs` still references bare `Entity`) and should be fixed alongside/before the Booking entities land, not deferred as an open decision.
+- **`TenantEntity` declares its key type explicitly** — `TenantEntity : Entity<Guid>` (matching the app-side `Guid.CreateVersion7()` PK convention), per `db-spec-mvp.md`'s `tenants.id uuid` column. Fixed in `c9381b2`.
 
 ---
 
@@ -208,7 +208,7 @@ JWT validation reuses IAM's issued tokens exactly as `UBP.IAM.API`'s own `AddVal
 
 ## Part IX. Open Decisions
 
-1. ~~**Tenant's `int Id` vs. spec'd `uuid`** (Part III) — needs an explicit call, not a silent Booking-side workaround.~~ Decided: `TenantEntity` moves to `Entity<Guid>`. Not yet applied in code — `TenantEntity.cs` still references the now-removed bare `Entity` and fails to build.
+1. ~~**Tenant's `int Id` vs. spec'd `uuid`** (Part III) — needs an explicit call, not a silent Booking-side workaround.~~ Decided and applied: `TenantEntity : Entity<Guid>`.
 2. **Per-module migration history table naming** (Part II) — pick the convention (`__EFMigrationsHistory_<Module>`) before the second module's first migration is generated, not after a collision is hit in CI/deploy.
 3. **Does `UBP.Notifications` get its own `API` project**, or is it a library only consumed by `Booking.API`'s controllers? Affects the `NotificationChannelsController` row above.
 4. **Guid PK generation location** — one factory, not one ad hoc `Guid.CreateVersion7()` call per entity constructor, so the "for better index clustering" convention in `db-spec-mvp.md` is actually honored everywhere.
