@@ -142,16 +142,14 @@ Purpose: owned entirely by the asset storage implementation (see `docs/asset-sto
 | Column | Type | Nullable | Default | Notes |
 |---|---|---|---|---|
 | id | uuid | no | — | PK |
-| tenant_id | uuid | no | — | FK → tenants; denormalized so storage-key isolation doesn't need a join |
-| asset_type | varchar(20) | no | `'Photo'` | enum: `Photo` in MVP; `Document`, `Video` reserved |
-| storage_key | varchar(500) | no | — | key/path in the storage backend, `{tenant_id}/{asset_id}.{ext}` |
-| content_type | varchar(100) | no | — | MIME type, validated against policy at upload time |
+| storage_key | varchar(500) | no | — | key/path in the storage backend, `{asset_id}.{ext}` |
+| content_type | varchar(100) | no | — | MIME type, stored as blob metadata; not used for upload policy |
 | size_bytes | bigint | no | — | validated against policy at upload time |
 | created_at | timestamptz | no | `now()` | |
 
-**Indexes:**
-- index on `tenant_id`
-- index on `(tenant_id, asset_type)`
+**Indexes:** none beyond the PK for now.
+
+> **No `tenant_id` yet:** deferred for now, not dropped — tenant scoping for stored objects (denormalized `tenant_id` + storage-key prefixing) is expected to come back once tenant isolation (Appendix rule 8) is wired up across the domain; see `docs/asset-storage-spec.md`.
 
 > **Why no `url` column:** the public/signed URL is derived from `storage_key` by the asset storage layer at read time, not stored — this keeps the row valid if the storage backend or CDN domain changes.
 > **Row lifecycle:** a row is inserted only after the object is confirmed written to storage, and deleted only after the object is confirmed removed — never leave a row pointing at a missing object.

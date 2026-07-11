@@ -5,7 +5,6 @@ erDiagram
 
     Resource ||--o{ ResourceAsset : "has"
     ResourceAsset }o--|| Asset : "references"
-    Tenant ||--o{ Asset : "owns (isolation)"
     Resource ||--o{ WeeklySchedule : "weekly hours"
     Resource ||--o{ ScheduleException : "blocked dates"
     Resource ||--o{ FieldSchema : "has (kind: ResourceAttributes | BookingForm)"
@@ -66,10 +65,8 @@ erDiagram
 
     Asset {
         uuid Id PK
-        uuid TenantId FK "denormalized for storage-key isolation"
-        enum AssetType "Photo (MVP); Document Video reserved"
         string StorageKey "key in asset storage backend"
-        string ContentType "MIME, validated by policy"
+        string ContentType "MIME, stored as blob metadata"
         long SizeBytes "validated by policy"
         timestamptz CreatedAt
     }
