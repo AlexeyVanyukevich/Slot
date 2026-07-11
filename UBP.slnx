@@ -21,6 +21,7 @@
   </Folder>
   <Project Path="UBP.Auth/UBP.Auth.csproj" />
   <Project Path="UBP.Cache.Abstractions/UBP.Cache.Abstractions.csproj" />
+  <Project Path="UBP.Endpoints/UBP.Endpoints.csproj" />
   <Project Path="UBP.OpenApi/UBP.OpenApi.csproj" />
   <Project Path="UBP.OpenApi.Scalar/UBP.OpenApi.Scalar.csproj" />
   <Project Path="UBP.Cache.InMemory/UBP.Cache.InMemory.csproj" />
