@@ -19,6 +19,7 @@
     <Project Path="UBP.Tenant/UBP.Tenant.Domain/UBP.Tenant.Domain.csproj" />
     <Project Path="UBP.Tenant/UBP.Tenant.Persistence/UBP.Tenant.Persistence.csproj" />
   </Folder>
+  <Project Path="UBP.Auth/UBP.Auth.csproj" />
   <Project Path="UBP.Cache.Abstractions/UBP.Cache.Abstractions.csproj" />
   <Project Path="UBP.OpenApi/UBP.OpenApi.csproj" />
   <Project Path="UBP.OpenApi.Scalar/UBP.OpenApi.Scalar.csproj" />
