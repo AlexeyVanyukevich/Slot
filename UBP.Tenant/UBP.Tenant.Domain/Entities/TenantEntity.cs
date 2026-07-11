@@ -4,7 +4,7 @@ using UBP.Tenant.Domain.Enums;
 
 namespace UBP.Tenant.Domain.Entities;
 
-public class TenantEntity : Entity, IAuditable
+public class TenantEntity : Entity<Guid>, IAuditable
 {
     public required string Name { get; set; }
     public required string Slug { get; set; }
