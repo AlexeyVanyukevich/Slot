@@ -21,6 +21,7 @@
   </Folder>
   <Folder Name="/UBP.Storage/">
     <Project Path="UBP.Storage/UBP.Storage.Abstractions/UBP.Storage.Abstractions.csproj" />
+    <Project Path="UBP.Storage/UBP.Storage.Local/UBP.Storage.Local.csproj" />
   </Folder>
   <Project Path="UBP.Auth/UBP.Auth.csproj" />
   <Project Path="UBP.Cache.Abstractions/UBP.Cache.Abstractions.csproj" />
