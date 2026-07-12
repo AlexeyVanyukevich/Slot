@@ -9,6 +9,10 @@
     <Project Path="UBP.Core/UBP.Core.Persistence.EF/UBP.Core.Persistence.EF.csproj" />
     <Project Path="UBP.Core/UBP.Core.Persistence/UBP.Core.Persistence.csproj" />
   </Folder>
+  <Folder Name="/UBP.Endpoints/">
+    <Project Path="UBP.Endpoints/UBP.Endpoints.Versioning/UBP.Endpoints.Versioning.csproj" />
+    <Project Path="UBP.Endpoints/UBP.Endpoints/UBP.Endpoints.csproj" />
+  </Folder>
   <Folder Name="/UBP.IAM/">
     <Project Path="UBP.IAM/UBP.IAM.API/UBP.IAM.API.csproj" />
     <Project Path="UBP.IAM/UBP.IAM.Application/UBP.IAM.Application.csproj" />
@@ -29,7 +33,6 @@
   </Folder>
   <Project Path="UBP.Auth/UBP.Auth.csproj" />
   <Project Path="UBP.Cache.Abstractions/UBP.Cache.Abstractions.csproj" />
-  <Project Path="UBP.Endpoints/UBP.Endpoints.csproj" />
   <Project Path="UBP.Cache.InMemory/UBP.Cache.InMemory.csproj" />
   <Project Path="UBP.CQRS/UBP.CQRS.csproj" />
   <Project Path="UBP.Logging/UBP.Logging.csproj" Id="534e04af-4a55-4c98-b242-5fa2f9561d02" />

@@ -21,8 +21,12 @@ public static class Bootstrap
         return services;
     }
 
-    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder builder, string? path = null)
     {
+        if (!string.IsNullOrEmpty(path))
+        {
+            builder = builder.MapGroup(path);
+        }
         var endpoints = builder.ServiceProvider.GetRequiredService<IEnumerable<IEndpoint>>();
 
         foreach (var endpoint in endpoints)
