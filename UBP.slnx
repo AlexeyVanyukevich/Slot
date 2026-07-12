@@ -23,6 +23,12 @@
     <Project Path="UBP.Tenant/UBP.Tenant.Domain/UBP.Tenant.Domain.csproj" />
     <Project Path="UBP.Tenant/UBP.Tenant.Persistence/UBP.Tenant.Persistence.csproj" />
   </Folder>
+  <Folder Name="/UBP.Booking/">
+    <Project Path="UBP.Booking/UBP.Booking.API/UBP.Booking.API.csproj" />
+    <Project Path="UBP.Booking/UBP.Booking.Application/UBP.Booking.Application.csproj" />
+    <Project Path="UBP.Booking/UBP.Booking.Domain/UBP.Booking.Domain.csproj" />
+    <Project Path="UBP.Booking/UBP.Booking.Persistence/UBP.Booking.Persistence.csproj" />
+  </Folder>
   <Folder Name="/UBP.OpenApi/">
     <Project Path="UBP.OpenApi/UBP.OpenApi.Scalar/UBP.OpenApi.Scalar.csproj" />
     <Project Path="UBP.OpenApi/UBP.OpenApi/UBP.OpenApi.csproj" />

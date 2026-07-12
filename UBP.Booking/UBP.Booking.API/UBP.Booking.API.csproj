@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\UBP.Endpoints\UBP.Endpoints.Versioning\UBP.Endpoints.Versioning.csproj" />
+    <ProjectReference Include="..\..\UBP.OpenApi\UBP.OpenApi.Scalar\UBP.OpenApi.Scalar.csproj" />
+    <ProjectReference Include="..\UBP.Booking.Application\UBP.Booking.Application.csproj" />
+    <ProjectReference Include="..\..\UBP.Auth\UBP.Auth.csproj" />
+    <ProjectReference Include="..\..\UBP.Logging\UBP.Logging.csproj" />
+  </ItemGroup>
+
+</Project>
