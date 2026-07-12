@@ -29,7 +29,11 @@
   </Folder>
   <Folder Name="/UBP.Storage/">
     <Project Path="UBP.Storage/UBP.Storage.Abstractions/UBP.Storage.Abstractions.csproj" />
+    <Project Path="UBP.Storage/UBP.Storage.API/UBP.Storage.API.csproj" />
+    <Project Path="UBP.Storage/UBP.Storage.Application/UBP.Storage.Application.csproj" />
+    <Project Path="UBP.Storage/UBP.Storage.Domain/UBP.Storage.Domain.csproj" />
     <Project Path="UBP.Storage/UBP.Storage.Local/UBP.Storage.Local.csproj" />
+    <Project Path="UBP.Storage/UBP.Storage.Persistence/UBP.Storage.Persistence.csproj" />
   </Folder>
   <Project Path="UBP.Auth/UBP.Auth.csproj" />
   <Project Path="UBP.Cache.Abstractions/UBP.Cache.Abstractions.csproj" />
