@@ -19,6 +19,10 @@
     <Project Path="UBP.Tenant/UBP.Tenant.Domain/UBP.Tenant.Domain.csproj" />
     <Project Path="UBP.Tenant/UBP.Tenant.Persistence/UBP.Tenant.Persistence.csproj" />
   </Folder>
+  <Folder Name="/UBP.OpenApi/">
+    <Project Path="UBP.OpenApi/UBP.OpenApi.Scalar/UBP.OpenApi.Scalar.csproj" />
+    <Project Path="UBP.OpenApi/UBP.OpenApi/UBP.OpenApi.csproj" />
+  </Folder>
   <Folder Name="/UBP.Storage/">
     <Project Path="UBP.Storage/UBP.Storage.Abstractions/UBP.Storage.Abstractions.csproj" />
     <Project Path="UBP.Storage/UBP.Storage.Local/UBP.Storage.Local.csproj" />
@@ -26,8 +30,6 @@
   <Project Path="UBP.Auth/UBP.Auth.csproj" />
   <Project Path="UBP.Cache.Abstractions/UBP.Cache.Abstractions.csproj" />
   <Project Path="UBP.Endpoints/UBP.Endpoints.csproj" />
-  <Project Path="UBP.OpenApi/UBP.OpenApi.csproj" />
-  <Project Path="UBP.OpenApi.Scalar/UBP.OpenApi.Scalar.csproj" />
   <Project Path="UBP.Cache.InMemory/UBP.Cache.InMemory.csproj" />
   <Project Path="UBP.CQRS/UBP.CQRS.csproj" />
   <Project Path="UBP.Logging/UBP.Logging.csproj" Id="534e04af-4a55-4c98-b242-5fa2f9561d02" />
