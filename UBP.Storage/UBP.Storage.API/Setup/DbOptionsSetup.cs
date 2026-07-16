@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-using UBP.Core.Persistence.Options;
+using UBP.Core.Persistence.Database.Options;
 
 namespace UBP.Storage.API.Setup;
 
