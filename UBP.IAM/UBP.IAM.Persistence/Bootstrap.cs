@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-using UBP.IAM.Persistence.Interfaces;
-using UBP.IAM.Persistence.Repositories;
+using UBP.Core.Persistence.Database.Options;
+using UBP.Core.Persistence.EF.PostgreSQL;
 using UBP.IAM.Domain.Entities;
 using UBP.IAM.Persistence.Contexts;
-using UBP.IAM.Persistence.Options;
-using Microsoft.Extensions.Hosting;
+using UBP.IAM.Persistence.Interfaces;
+using UBP.IAM.Persistence.Repositories;
 
 namespace UBP.IAM.Persistence;
 
@@ -15,17 +16,10 @@ public static class Bootstrap
 {
     public static IServiceCollection AddPersistence(
         this IServiceCollection services,
-        Func<IServiceProvider, DbOptions> dbOptionsFactory)
+        Action<DbOptions>? configure = null)
     {
         services.AddRepositories();
-        services.AddDbContext<AuthDbContext>((sp, builder) =>
-        {
-            var options = dbOptionsFactory(sp);
-
-            builder.UseNpgsql(options.ConnectionString)
-                   .UseSnakeCaseNamingConvention();
-            builder.UseOpenIddict();
-        });
+        services.AddPostgresEFDbContext<AuthDbContext, DbOptions>(configure);
 
         return services;
     }
@@ -40,10 +34,13 @@ public static class Bootstrap
 
     public static IdentityBuilder AddIdentity(
         this IServiceCollection services,
-        Action<IdentityOptions> configure)
+        Action<IdentityOptions>? configure = null)
     {
-        return services
-            .AddIdentity<ApplicationUser, IdentityRole>(configure)
+        IdentityBuilder builder = configure is null
+            ? services.AddIdentity<ApplicationUser, IdentityRole>()
+            : services.AddIdentity<ApplicationUser, IdentityRole>(configure);
+
+        return builder
             .AddEntityFrameworkStores<AuthDbContext>()
             .AddDefaultTokenProviders();
     }

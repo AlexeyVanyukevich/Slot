@@ -1,20 +1,20 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using System.Reflection;
 
+using UBP.Core.Persistence.Database.Options;
 using UBP.CQRS;
 using UBP.IAM.Persistence;
-using UBP.IAM.Persistence.Options;
-using Microsoft.Extensions.Hosting;
 
 namespace UBP.IAM.Application;
 
 public static class Bootstrap
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, Func<IServiceProvider, DbOptions> dbOptionsFactory)
+    public static IServiceCollection AddApplication(this IServiceCollection services, Action<DbOptions>? configure = null)
     {
-        services.AddPersistence(dbOptionsFactory);
+        services.AddPersistence(configure);
         return services.AddMessaging(Assembly.GetExecutingAssembly());
     }
 

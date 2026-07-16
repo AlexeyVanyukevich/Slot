@@ -1,12 +1,9 @@
 
-using Microsoft.Extensions.Options;
-
 using OpenIddict.Abstractions;
 
 using UBP.IAM.API.Constants;
 using UBP.IAM.API.Extensions;
 using UBP.IAM.Application;
-using UBP.IAM.Persistence.Options;
 using UBP.Logging;
 using UBP.OpenApi;
 using UBP.OpenApi.Scalar;
@@ -17,7 +14,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Host.AddLogging();
 
 builder.Services.ConfigureAppOptions();
-builder.Services.AddApplication(sp => sp.GetRequiredService<IOptions<DbOptions>>().Value);
+builder.Services.AddApplication();
 builder.Services.AddIdentity();
 
 builder.Services.AddOpenIdConnect()
@@ -55,7 +52,7 @@ builder.Services.AddOpenIdConnect()
         options.UseAspNetCore();
     });
 
-builder.Services.AddOpenApiDocumentation(options =>
+builder.Services.AddOpenApiDocumentation("v1", options =>
 {
     options.Title = "IAM API";
     options.Version = "v1";

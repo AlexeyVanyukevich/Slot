@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 
-using UBP.IAM.Persistence.Options;
+using UBP.Core.Persistence.Database.Options;
 
 namespace UBP.IAM.API.Setup;
 
