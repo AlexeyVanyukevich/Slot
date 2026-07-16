@@ -1,11 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-
 using UBP.Auth;
 using UBP.Booking.API.Extensions;
 using UBP.Booking.API.Services;
 using UBP.Booking.Application;
-using UBP.Core.Persistence.Options;
 using UBP.Endpoints;
 using UBP.Logging;
 using UBP.OpenApi;
@@ -16,11 +12,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Host.AddLogging();
 
 builder.Services.ConfigureAppOptions();
-builder.Services.AddApplication((sp, options) =>
-{
-    var dbOptions = sp.GetRequiredService<IOptions<DbOptions>>().Value;
-    options.UseNpgsql(dbOptions.ConnectionString).UseSnakeCaseNamingConvention();
-});
+builder.Services.AddApplication();
 
 builder.Services.AddIamAuthentication(options =>
 {
@@ -29,7 +21,7 @@ builder.Services.AddIamAuthentication(options =>
 });
 builder.Services.AddAuthorization();
 
-builder.Services.AddOpenApiDocumentation(options =>
+builder.Services.AddOpenApiDocumentation("v1", options =>
 {
     options.Title = "Booking API";
     options.Version = "v1";

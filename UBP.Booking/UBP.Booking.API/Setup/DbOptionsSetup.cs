@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
-using UBP.Core.Persistence.Options;
+using UBP.Core.Persistence.Database.Options;
 
 namespace UBP.Booking.API.Setup;
 
