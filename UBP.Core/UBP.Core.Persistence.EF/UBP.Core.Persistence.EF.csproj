@@ -7,11 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../UBP.Core.Persistence.Database/UBP.Core.Persistence.Database.csproj" />
     <ProjectReference Include="..\UBP.Core.Persistence\UBP.Core.Persistence.csproj" />
   </ItemGroup>
 </Project>

@@ -6,6 +6,8 @@
   <Folder Name="/UBP.Core/">
     <Project Path="UBP.Core/UBP.Core.Data.EF/UBP.Core.Data.EF.csproj" />
     <Project Path="UBP.Core/UBP.Core.Domain/UBP.Core.Domain.csproj" />
+    <Project Path="UBP.Core/UBP.Core.Persistence.Database/UBP.Core.Persistence.Database.csproj" />
+    <Project Path="UBP.Core/UBP.Core.Persistence.EF.PostgreSQL/UBP.Core.Persistence.EF.PostgreSQL.csproj" />
     <Project Path="UBP.Core/UBP.Core.Persistence.EF/UBP.Core.Persistence.EF.csproj" />
     <Project Path="UBP.Core/UBP.Core.Persistence/UBP.Core.Persistence.csproj" />
   </Folder>
